@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const ENDPOINT = 'https://among-us-voting-server.herokuapp.com/';
+const ENDPOINT = 'http://localhost:5000/';
 const socket = io.connect(ENDPOINT);
 
 const useConnect = () => {
@@ -15,26 +15,15 @@ const useConnect = () => {
     setHideVotation(!hideVotation);
   }, [hideVotation, setHideVotation]);
 
+  const handleClear = useCallback(() => {
+    socket.emit("clear");
+  }, []);
+
+  const handleEnd = useCallback(() => {
+    socket.emit("end");
+  }, []);
+
   useEffect(() => {
-    socket.on("impostor", (data) => {
-      alert(data);
-      socket.emit("clear");
-    });
-
-    socket.on("start", (data) => {
-      if(data.vote) {
-        handleHideVotation();
-      }
-      setIsPlaying(data.playing);
-      setPlayers(data.players)
-    })
-
-    socket.on("finish", (data) => {
-      socket.emit("end");
-      setPlayers(data);
-      handleHideVotation();
-    });
-
     socket.on("players", (data) => {
       if (data.length > 0) {
         setPlayers(data);
@@ -44,13 +33,34 @@ const useConnect = () => {
       }
     });
 
+    socket.on("start", (data) => {
+      handleHideVotation();
+      setIsPlaying(data.playing);
+      setPlayers(data.players)
+    });
+
+    socket.on("finish", (data) => {
+      setPlayers(data);
+      handleEnd();
+    });
+
+    socket.on("kill", (data) => {
+      setPlayers(data);
+      handleHideVotation(); 
+    });
+
+    socket.on("impostor", (data) => {
+      console.log(data)
+      handleClear();
+    });
+
     players.map((player) => {
       if (player.id === socket.id) {
         setCurrentPlayer(player);
       }
       return null;
     });
-  }, [players, setPlayers, setCurrentPlayer, handleHideVotation]);
+  }, [players, setPlayers, setCurrentPlayer, handleHideVotation, handleClear, handleEnd]);
 
   const handleVote = useCallback(
     (id) => {
@@ -62,7 +72,7 @@ const useConnect = () => {
 
   const handleLogin = useCallback(
     (nombre) => {
-      if (players.length >= 6) {
+      if (players.length === 6) {
         alert("Sala Llena! Vuelve luego.");
       } else {
         socket.emit("join", nombre, socket.id);
@@ -85,6 +95,7 @@ const useConnect = () => {
     handleLogin,
     handleVote,
     hideVotation,
+    handleClear,
   };
 };
 

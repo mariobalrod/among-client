@@ -5,6 +5,7 @@ export const Container = styled.div`
   height: 130px;
   padding: 40px;
   background-color: ${(props) => (props.alive ? "#ccc" : "#caa")};
+  border: ${(props) => (props.current ? "5px solid blue" : "none")};
   color: #38433f;
   border-radius: 20px;
   display: flex;
@@ -27,6 +28,9 @@ export const Button = styled.button`
   width: 50px;
   height: 50px;
   background-color: ${(props) => (props.variant === "yes" ? "green" : "red")};
+  color: white;
+  font-weight: 600;
+  border: none;
   outline: none;
   border-radius: 10px;
   :hover {

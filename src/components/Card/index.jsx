@@ -1,10 +1,17 @@
 import { Container, Section, Name, Color, Votation, Button } from "./styles";
 
-const Card = ({ currentPlayer, player, handleVote, hideVotation }) => {
+const Card = ({ index, currentPlayer, player, handleVote, hideVotation }) => {
+  const current = currentPlayer?.id === player.id;
+ 
   return (
-    <Container alive={player.alive}>
+    <Container alive={player.alive} current={current}>
       <Section>
-        <Name>{player.name}</Name>
+        {current ? (
+          <Name>TÚ</Name>
+        ) : (
+          <Name>{player.name}</Name>
+        )}
+
         <Color color={player.color}>{player.color}</Color>
       </Section>
 
@@ -14,7 +21,9 @@ const Card = ({ currentPlayer, player, handleVote, hideVotation }) => {
 
           {hideVotation && currentPlayer?.id !== player.id && (
             <Votation>
-              <Button onClick={() => handleVote(player.id)} variant="yes">Vote</Button>
+              <Button onClick={() => handleVote(player.id)} variant="yes">
+                Vote
+              </Button>
             </Votation>
           )}
         </>

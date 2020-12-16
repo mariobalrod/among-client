@@ -14,11 +14,14 @@ const App = () => {
     handleLogin,
     handleVote,
     hideVotation,
+    handleClear,
   } = useConnect();
 
   return (
     <Root className="App">
-      <h1 style={{ textAlign: "center" }}>Socketio, Flask and React Chat</h1>
+      <h1 style={{ textAlign: "center" }}>AMONG US</h1>
+
+      <Button style={{ marginTop: "80px" }} onClick={handleClear()}>Reset</Button>
 
       {players.length > 1 && !isPlaying && currentPlayer && <Button style={{ marginTop: "80px" }} onClick={handleStart}>Start game</Button>}
 
@@ -31,9 +34,10 @@ const App = () => {
       ) : (
         <Container>
           <Content>
-            {players.map((player) => (
+            {players.map((player, index) => (
               <Card
                 key={player.id}
+                index={index}
                 currentPlayer={currentPlayer}
                 player={player}
                 handleVote={handleVote}
