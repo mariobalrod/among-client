@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const ENDPOINT = 'http://localhost:5000';
+const ENDPOINT = 'https://among-us-voting-server.herokuapp.com/';
 const socket = io.connect(ENDPOINT);
 
 const useConnect = () => {
