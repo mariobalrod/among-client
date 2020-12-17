@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { Container, Section, Name, Color, Votation, Button } from "./styles";
 
-const Card = ({ index, currentPlayer, player, handleVote, hideVotation }) => {
+const Card = ({ currentPlayer, player, handleVote, hideVotation }) => {
   const current = currentPlayer?.id === player.id;
  
   return (
@@ -19,7 +20,7 @@ const Card = ({ index, currentPlayer, player, handleVote, hideVotation }) => {
         <>
           <Name>{player.voting}</Name>
 
-          {hideVotation && currentPlayer?.id !== player.id && (
+          {currentPlayer?.alive && hideVotation && currentPlayer?.id !== player.id && (
             <Votation>
               <Button onClick={() => handleVote(player.id)} variant="yes">
                 Vote
@@ -34,4 +35,4 @@ const Card = ({ index, currentPlayer, player, handleVote, hideVotation }) => {
   );
 };
 
-export default Card;
+export default memo(Card);

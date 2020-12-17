@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const ENDPOINT = 'http://localhost:5000/';
+const ENDPOINT = 'https://among-us-voting-server.herokuapp.com/';
 const socket = io.connect(ENDPOINT);
 
 const useConnect = () => {
@@ -10,81 +10,85 @@ const useConnect = () => {
   const [players, setPlayers] = useState([]);
   const [hideForm, setHideForm] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [endMsg, setEndMsg] = useState('');
 
-  const handleHideVotation = useCallback(() => {
-    setHideVotation(!hideVotation);
-  }, [hideVotation, setHideVotation]);
-
-  const handleClear = useCallback(() => {
-    socket.emit("clear");
-  }, []);
-
-  const handleEnd = useCallback(() => {
-    socket.emit("end");
-  }, []);
+  const reset = () => {
+    setPlayers([]);
+    setCurrentPlayer();
+    setHideVotation(false);
+    setIsPlaying(false)
+  };
 
   useEffect(() => {
-    socket.on("players", (data) => {
-      if (data.length > 0) {
-        setPlayers(data);
-      } else {
-        setCurrentPlayer();
-        setPlayers([]);
-      }
-    });
-
-    socket.on("start", (data) => {
-      handleHideVotation();
-      setIsPlaying(data.playing);
-      setPlayers(data.players)
-    });
-
-    socket.on("finish", (data) => {
-      setPlayers(data);
-      handleEnd();
-    });
-
-    socket.on("kill", (data) => {
-      setPlayers(data);
-      handleHideVotation(); 
-    });
-
-    socket.on("impostor", (data) => {
-      console.log(data)
-      handleClear();
-    });
-
     players.map((player) => {
       if (player.id === socket.id) {
         setCurrentPlayer(player);
       }
       return null;
     });
-  }, [players, setPlayers, setCurrentPlayer, handleHideVotation, handleClear, handleEnd]);
+  }, [players])
+
+  const loadSockets = useCallback(() => {
+    socket.on("players", (data) => {
+      setPlayers(data);
+    });
+
+    socket.on("full", (data) => {
+      if (data === true) {
+        console.log('Sala llena, vuelve luego!')
+      }
+    });
+
+    socket.on("start", (data) => {
+      setEndMsg('')
+      setHideVotation(true);
+      setIsPlaying(data.playing);
+      setPlayers(data.players);
+    });
+
+    socket.on("kill", (data) => {
+      setHideVotation(true);
+      setPlayers(data);
+    });
+
+    socket.on("impostor", (data) => {
+      socket.emit("clear");
+      setEndMsg(data);
+      reset();
+      setHideForm(true);
+    });
+
+    socket.on("defeat", (data) => {
+      socket.emit("clear");
+      setEndMsg(data);
+      reset();
+      setHideForm(true);
+    });
+  }, [setPlayers, setHideVotation, setEndMsg]);
 
   const handleVote = useCallback(
     (id) => {
       socket.emit("vote", id);
-      handleHideVotation();
+      setHideVotation(false);
+      socket.emit("end");
+      loadSockets();
     },
-    [handleHideVotation]
+    [setHideVotation, loadSockets]
   );
 
   const handleLogin = useCallback(
     (nombre) => {
-      if (players.length === 6) {
-        alert("Sala Llena! Vuelve luego.");
-      } else {
-        socket.emit("join", nombre, socket.id);
-        setHideForm(false);
-      }
+      socket.emit("join", nombre, socket.id);
+      loadSockets();
+      setHideForm(false);
     },
-    [players, setHideForm]
+    [setHideForm, loadSockets]
   );
 
   const handleStart = useCallback(() => {
     socket.emit("start");
-  }, []);
+    loadSockets();
+  }, [loadSockets]);
 
   return {
     players,
@@ -95,7 +99,7 @@ const useConnect = () => {
     handleLogin,
     handleVote,
     hideVotation,
-    handleClear,
+    endMsg,
   };
 };
 
